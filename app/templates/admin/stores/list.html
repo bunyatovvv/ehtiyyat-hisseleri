@@ -1,0 +1,121 @@
+{% extends "admin/base.html" %}
+{% block title %}Mağazalar · Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h3 class="mb-0">Mağazalar</h3>
+  <a href="{{ url_for('admin.store_new') }}" class="btn btn-primary">+ Yeni mağaza</a>
+</div>
+
+<div class="card shadow-sm mb-3">
+  <div class="card-body">
+    <form method="get" class="row g-2 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label small mb-1">Axtarış</label>
+        <input type="text" name="q" class="form-control" value="{{ filters.q }}"
+               placeholder="ad, ünvan, telefon…">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Ölkə</label>
+        <select name="country" class="form-select">
+          <option value="">Hamısı</option>
+          <option value="AZ" {% if filters.country == 'AZ' %}selected{% endif %}>🇦🇿 Azərbaycan</option>
+          <option value="GE" {% if filters.country == 'GE' %}selected{% endif %}>🇬🇪 Gürcüstan</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Marka</label>
+        <select name="brand_id" class="form-select">
+          <option value="">Hamısı</option>
+          {% for b in brands %}
+            <option value="{{ b.id }}" {% if filters.brand_id == b.id %}selected{% endif %}>{{ b.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Şəhər</label>
+        <select name="city" class="form-select">
+          <option value="">Hamısı</option>
+          {% for city in cities %}
+            <option value="{{ city }}" {% if filters.city == city %}selected{% endif %}>{{ city }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label small mb-1">Status</label>
+        <select name="status" class="form-select">
+          <option value="" {% if not filters.status %}selected{% endif %}>Hamısı</option>
+          <option value="active" {% if filters.status == 'active' %}selected{% endif %}>Aktiv</option>
+          <option value="inactive" {% if filters.status == 'inactive' %}selected{% endif %}>Deaktiv</option>
+        </select>
+      </div>
+      <div class="col-md-1 d-grid">
+        <button class="btn btn-outline-primary">Filtr</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>Ad</th>
+          <th>Ölkə</th>
+          <th>Şəhər</th>
+          <th>Telefon</th>
+          <th>Markalar</th>
+          <th>Status</th>
+          <th class="text-end">Əməliyyat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in stores %}
+        <tr>
+          <td>
+            <div class="fw-semibold">{{ s.name }}</div>
+            {% if s.address %}<div class="text-muted small">{{ s.address }}</div>{% endif %}
+          </td>
+          <td>
+            {% if s.country == 'GE' %}
+              <span class="badge bg-danger">🇬🇪 GE</span>
+            {% else %}
+              <span class="badge bg-primary">🇦🇿 AZ</span>
+            {% endif %}
+          </td>
+          <td>{{ s.city or '—' }}</td>
+          <td>
+            {% if s.phone %}<div class="small">{{ s.phone }}</div>{% endif %}
+            {% if s.whatsapp_number %}<div class="small text-success">WA: {{ s.whatsapp_number }}</div>{% endif %}
+          </td>
+          <td>
+            {% for b in s.brands %}<span class="badge badge-tag me-1">{{ b.name }}</span>{% endfor %}
+          </td>
+          <td>
+            <form method="post" action="{{ url_for('admin.store_toggle', store_id=s.id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              <button class="btn btn-sm {{ 'btn-success' if s.is_active else 'btn-outline-secondary' }}"
+                      title="Statusu dəyiş">
+                {{ 'Aktiv' if s.is_active else 'Deaktiv' }}
+              </button>
+            </form>
+          </td>
+          <td class="text-end">
+            <a href="{{ url_for('admin.store_edit', store_id=s.id) }}" class="btn btn-sm btn-outline-primary">Redaktə</a>
+            <form method="post" action="{{ url_for('admin.store_delete', store_id=s.id) }}" class="d-inline"
+                  onsubmit="return confirm('Bu mağazanı silmək istədiyinizə əminsiniz?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-danger">Sil</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7" class="text-center text-muted py-4">Mağaza tapılmadı.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

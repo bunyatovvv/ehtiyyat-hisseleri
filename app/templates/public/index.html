@@ -1,0 +1,283 @@
+{% extends "public/base.html" %}
+{% block title %}Ehtiyat hissələri · Axtar{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h5 class="card-title mb-3">Axtarış</h5>
+        <form method="get" action="{{ url_for('public.index') }}">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Marka</label>
+            <select name="brand_id" class="form-select" required>
+              <option value="">— seçin —</option>
+              {% for b in brands %}
+                <option value="{{ b.id }}" {% if selected_brand and selected_brand.id == b.id %}selected{% endif %}>
+                  {{ b.name }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Ölkə</label>
+            <select name="country" class="form-select">
+              <option value=""  {% if not selected_country %}selected{% endif %}>Hamısı</option>
+              <option value="AZ" {% if selected_country == 'AZ' %}selected{% endif %}>🇦🇿 Azərbaycan</option>
+              <option value="GE" {% if selected_country == 'GE' %}selected{% endif %}>🇬🇪 Gürcüstan</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Hissənin adı</label>
+            <input type="text" name="part_name" id="part_name_input" class="form-control"
+                   value="{{ part_name }}">
+            <div class="form-text">Mesaj mağazanın ölkəsinə görə Azərbaycanca / Gürcücə olur.</div>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Mağazaları göstər</button>
+        </form>
+      </div>
+    </div>
+
+    {% if not selected_brand %}
+    <div class="mt-3">
+      <p class="text-muted small mb-2">Ya da marka üzərinə klikləyin:</p>
+      <div class="row g-2">
+        {% for b in brands %}
+          <div class="col-6 col-md-4">
+            <a href="{{ url_for('public.index', brand_id=b.id) }}"
+               class="card brand-card text-decoration-none text-center py-3">
+              <div class="fw-semibold">{{ b.name }}</div>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="col-lg-7">
+    {% if selected_brand %}
+      <div class="d-flex align-items-baseline justify-content-between mb-3">
+        <h4 class="mb-0">{{ selected_brand.name }}</h4>
+        <span class="text-muted small">{{ stores|length }} mağaza tapıldı</span>
+      </div>
+
+      {% if has_az or has_ge %}
+        <div class="alert alert-light border small mb-3">
+          <div class="text-muted mb-2">Göndəriləcək mesajlar:</div>
+          {% if has_az %}
+            <div class="mb-1">
+              <span class="badge bg-primary me-1">🇦🇿 AZ</span>
+              <span class="fw-semibold" id="message-preview-az">{{ preview_az }}</span>
+            </div>
+          {% endif %}
+          {% if has_ge %}
+            <div>
+              <span class="badge bg-danger me-1">🇬🇪 GE</span>
+              <span class="fw-semibold" id="message-preview-ge">{{ preview_ge }}</span>
+            </div>
+          {% endif %}
+        </div>
+      {% endif %}
+
+      {% if stores %}
+        {# Toplu göndər paneli #}
+        <div class="card border-primary-subtle bg-primary-subtle mb-3">
+          <div class="card-body py-2 d-flex flex-wrap align-items-center gap-2">
+            <div class="form-check me-2">
+              <input class="form-check-input" type="checkbox" id="select-all">
+              <label class="form-check-label small" for="select-all">Hamısını seç</label>
+            </div>
+            <span class="text-muted small me-auto"><span id="selected-count">0</span> seçilib</span>
+            <button type="button" id="bulk-send-btn" class="btn btn-success btn-sm" disabled>
+              💬 Seçilmişlərə göndər
+            </button>
+          </div>
+          <div class="card-body py-2 border-top small text-muted">
+            Hər mağazaya öz dilində mesaj gedir. Brauzer pop-up-ları bloklasa "Allow"-a basın.
+            Hər WhatsApp tab-ında <b>Send</b> düyməsinə basmalısınız.
+          </div>
+        </div>
+
+        <div class="row g-3">
+          {% for s in stores %}
+            <div class="col-md-6">
+              <div class="card store-card shadow-sm">
+                <div class="card-body d-flex flex-column">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                      <h5 class="card-title mb-1">
+                        {% if s.country == 'GE' %}🇬🇪{% else %}🇦🇿{% endif %}
+                        {{ s.name }}
+                      </h5>
+                    </div>
+                    {% if s.whatsapp_digits %}
+                    <div class="form-check">
+                      <input class="form-check-input store-check" type="checkbox"
+                             data-phone="{{ s.whatsapp_digits }}"
+                             data-country="{{ s.country }}"
+                             data-name="{{ s.name }}"
+                             id="pick_{{ s.id }}">
+                      <label class="form-check-label small text-muted" for="pick_{{ s.id }}">Seç</label>
+                    </div>
+                    {% endif %}
+                  </div>
+
+                  {% if s.city %}
+                    <div class="text-muted small">📍 {{ s.city }}{% if s.address %}, {{ s.address }}{% endif %}</div>
+                  {% elif s.address %}
+                    <div class="text-muted small">📍 {{ s.address }}</div>
+                  {% endif %}
+                  {% if s.phone %}
+                    <div class="small mt-1">📞 {{ s.phone }}</div>
+                  {% endif %}
+                  {% if s.working_hours %}
+                    <div class="small text-muted">🕒 {{ s.working_hours }}</div>
+                  {% endif %}
+
+                  {% if s.brands %}
+                  <div class="mt-2">
+                    {% for b in s.brands %}
+                      <span class="badge badge-tag me-1 mb-1">{{ b.name }}</span>
+                    {% endfor %}
+                  </div>
+                  {% endif %}
+
+                  <div class="mt-auto pt-3">
+                    {% if s.whatsapp_digits %}
+                      {# JS söndürülübsə server-side hazırlanmış mesajla açılsın (fallback) #}
+                      <a href="https://wa.me/{{ s.whatsapp_digits }}?text={{ store_messages_encoded[s.id] }}"
+                         target="_blank" rel="noopener"
+                         class="btn btn-success w-100 wa-btn"
+                         data-phone="{{ s.whatsapp_digits }}"
+                         data-country="{{ s.country }}">
+                        💬 WhatsApp-da yaz
+                      </a>
+                    {% else %}
+                      <button class="btn btn-secondary w-100" disabled>WhatsApp nömrəsi yoxdur</button>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="alert alert-warning">
+          Bu marka üzrə aktiv mağaza tapılmadı.
+        </div>
+      {% endif %}
+    {% else %}
+      <div class="card border-0 bg-transparent">
+        <div class="card-body text-center text-muted py-5">
+          <h5>Başlamaq üçün marka seçin</h5>
+          <p class="mb-0">Ehtiyacınız olan avtomobil markasını seçib mağazaların siyahısını görün.</p>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if selected_brand %}
+<script>
+(function () {
+  const brand = {{ selected_brand.name | tojson }};
+  const partInput = document.getElementById('part_name_input');
+  const previewAz = document.getElementById('message-preview-az');
+  const previewGe = document.getElementById('message-preview-ge');
+
+  function buildMessage(country) {
+    const part = partInput ? partInput.value.trim() : '';
+    if (country === 'GE') {
+      return part
+        ? `გამარჯობა, ${brand}-ისთვის ${part} მჭირდება.`
+        : `გამარჯობა, ${brand}-ისთვის სათადარიგო ნაწილი მჭირდება.`;
+    }
+    // AZ (default)
+    return part
+      ? `Salam, ${brand} üçün ${part} lazımdır.`
+      : `Salam, ${brand} üçün ehtiyat hissəsi lazımdır.`;
+  }
+
+  function waUrl(phone, country) {
+    return 'https://wa.me/' + phone + '?text=' + encodeURIComponent(buildMessage(country));
+  }
+
+  // Preview canlı yenilənir (hər dil üçün ayrı)
+  if (partInput) {
+    partInput.addEventListener('input', function () {
+      if (previewAz) previewAz.textContent = buildMessage('AZ');
+      if (previewGe) previewGe.textContent = buildMessage('GE');
+    });
+  }
+
+  // Tək mağazaya göndər
+  document.querySelectorAll('.wa-btn').forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      const phone = btn.getAttribute('data-phone');
+      const country = btn.getAttribute('data-country') || 'AZ';
+      if (!phone) return;
+      e.preventDefault();
+      window.open(waUrl(phone, country), '_blank', 'noopener');
+    });
+  });
+
+  // ---- Toplu seçim ----
+  const selectAll = document.getElementById('select-all');
+  const checks = document.querySelectorAll('.store-check');
+  const countEl = document.getElementById('selected-count');
+  const bulkBtn = document.getElementById('bulk-send-btn');
+
+  function refresh() {
+    const picked = document.querySelectorAll('.store-check:checked');
+    const n = picked.length;
+    if (countEl) countEl.textContent = n;
+    if (bulkBtn) {
+      bulkBtn.disabled = n === 0;
+      bulkBtn.textContent = n > 0
+        ? '💬 Seçilmiş ' + n + ' mağazaya göndər'
+        : '💬 Seçilmişlərə göndər';
+    }
+    if (selectAll) {
+      selectAll.checked = n > 0 && n === checks.length;
+      selectAll.indeterminate = n > 0 && n < checks.length;
+    }
+  }
+
+  checks.forEach(function (c) { c.addEventListener('change', refresh); });
+  if (selectAll) {
+    selectAll.addEventListener('change', function () {
+      checks.forEach(function (c) { c.checked = selectAll.checked; });
+      refresh();
+    });
+  }
+
+  if (bulkBtn) {
+    bulkBtn.addEventListener('click', function () {
+      const picked = Array.from(document.querySelectorAll('.store-check:checked'));
+      if (picked.length === 0) return;
+
+      const names = picked.map(function (c) { return c.getAttribute('data-name'); }).join(', ');
+      const ok = confirm(
+        picked.length + ' mağazaya WhatsApp göndəriləcək:\n\n' + names +
+        '\n\nHər mağazaya öz dilində mesaj gedəcək. Hər tab-da Send düyməsinə basın.'
+      );
+      if (!ok) return;
+
+      picked.forEach(function (c, i) {
+        const phone = c.getAttribute('data-phone');
+        const country = c.getAttribute('data-country') || 'AZ';
+        setTimeout(function () {
+          window.open(waUrl(phone, country), '_blank', 'noopener');
+        }, i * 250);
+      });
+    });
+  }
+
+  refresh();
+})();
+</script>
+{% endif %}
+{% endblock %}

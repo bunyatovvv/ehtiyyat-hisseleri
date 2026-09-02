@@ -1,0 +1,43 @@
+{% extends "admin/base.html" %}
+{% block title %}Markalar · Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3">
+  <h3 class="mb-0">Markalar</h3>
+  <a href="{{ url_for('admin.brand_new') }}" class="btn btn-primary">+ Yeni marka</a>
+</div>
+
+<div class="card shadow-sm">
+  <div class="table-responsive">
+    <table class="table mb-0 align-middle">
+      <thead class="table-light">
+        <tr>
+          <th>#</th>
+          <th>Ad</th>
+          <th>Mağaza sayı</th>
+          <th class="text-end">Əməliyyat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in brands %}
+        <tr>
+          <td>{{ b.id }}</td>
+          <td class="fw-semibold">{{ b.name }}</td>
+          <td>{{ b.stores.count() }}</td>
+          <td class="text-end">
+            <a href="{{ url_for('admin.brand_edit', brand_id=b.id) }}" class="btn btn-sm btn-outline-primary">Redaktə</a>
+            <form method="post" action="{{ url_for('admin.brand_delete', brand_id=b.id) }}" class="d-inline"
+                  onsubmit="return confirm('Bu markanı silmək istədiyinizə əminsiniz?');">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-sm btn-outline-danger">Sil</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="4" class="text-center text-muted py-4">Marka yoxdur.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

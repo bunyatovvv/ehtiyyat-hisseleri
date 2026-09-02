@@ -1,0 +1,22 @@
+{% extends "admin/base.html" %}
+{% block title %}{{ 'Marka redaktəsi' if brand else 'Yeni marka' }} · Admin{% endblock %}
+
+{% block content %}
+<h3 class="mb-4">{{ 'Marka redaktəsi' if brand else 'Yeni marka' }}</h3>
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="mb-3">
+        <label class="form-label">Ad</label>
+        <input type="text" name="name" class="form-control" required
+               value="{{ brand.name if brand else '' }}">
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Yadda saxla</button>
+        <a href="{{ url_for('admin.brand_list') }}" class="btn btn-outline-secondary">Ləğv et</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "admin/base.html" %}
+{% block title %}Dashboard · Ehtiyat hissələri{% endblock %}
+
+{% block content %}
+<h3 class="mb-4">Dashboard</h3>
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Markalar</div>
+        <div class="display-6 fw-bold">{{ stats.brands }}</div>
+        <a href="{{ url_for('admin.brand_list') }}" class="small">Bax →</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Mağazalar (ümumi)</div>
+        <div class="display-6 fw-bold">{{ stats.stores }}</div>
+        <a href="{{ url_for('admin.store_list') }}" class="small">Bax →</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="text-muted small">Aktiv mağazalar</div>
+        <div class="display-6 fw-bold text-success">{{ stats.active_stores }}</div>
+        <a href="{{ url_for('admin.store_list', status='active') }}" class="small">Bax →</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
