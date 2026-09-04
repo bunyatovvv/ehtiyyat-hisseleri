@@ -6,7 +6,7 @@ REM  Sonrakilar: birbaşa serveri qaldirir
 REM  Ise salmaq ucun: bu fayla iki defe klik edin
 REM ==============================================================
 
-setlocal
+setlocal EnableDelayedExpansion
 cd /d "%~dp0"
 
 echo.
@@ -15,23 +15,47 @@ echo  Ehtiyat hisseleri
 echo ================================================
 echo.
 
-REM ---- Python yoxlanilir ----
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo [XETA] Python tapilmadi.
-    echo.
-    echo Python 3.7.9 endirin ve "Add Python to PATH" secerek qurun:
-    echo   https://www.python.org/ftp/python/3.7.9/python-3.7.9.exe
-    echo.
-    pause
-    exit /b 1
+REM ---- Python komandasi tapilir ----
+REM Windows-da bezen "python" PATH-de olmur, amma "py" (Python Launcher) olur.
+REM Her ikisini yoxlayirq, hansi isleyirse onu istifade edirik.
+set "PY="
+
+py -3.7 --version >nul 2>&1
+if not errorlevel 1 (
+    set "PY=py -3.7"
+    goto :py_found
 )
+
+py --version >nul 2>&1
+if not errorlevel 1 (
+    set "PY=py"
+    goto :py_found
+)
+
+python --version >nul 2>&1
+if not errorlevel 1 (
+    set "PY=python"
+    goto :py_found
+)
+
+echo [XETA] Python tapilmadi.
+echo.
+echo Python 3.7.9 endirin ve "Add Python to PATH" secerek qurun:
+echo   https://www.python.org/ftp/python/3.7.9/python-3.7.9.exe
+echo.
+pause
+exit /b 1
+
+:py_found
+echo [INFO] Python komandasi: !PY!
+!PY! --version
+echo.
 
 REM ---- venv yoxdursa yaradilir + deps install olunur ----
 if not exist "venv\Scripts\activate.bat" (
     echo [SETUP] Ilk defe qurulur, 2-5 deqiqe cekebilir...
     echo.
-    python -m venv venv
+    !PY! -m venv venv
     if errorlevel 1 (
         echo.
         echo [XETA] Virtual environment yaradila bilmedi.
@@ -80,6 +104,6 @@ echo ================================================
 echo.
 python app.py
 
-REM Ctrl+C ile bitse, pencere avtomatik baglanmasin
+REM Ctrl+C ile bitse pencere avtomatik baglanmasin
 echo.
 pause
