@@ -103,25 +103,34 @@ Mesaj formatı:
 
 Tətbiq **Python 3.7-13** arasında bütün versiyalarda işləyir. Windows 7-də ən stabil Python `3.7.9`, Windows 8.1-də isə `3.9.13`-dir.
 
-### Windows 7-də quraşdırma
+### Windows 7-də quraşdırma (sadə yol)
 
 1. **Python 3.7.9** endirin: <https://www.python.org/ftp/python/3.7.9/python-3.7.9.exe>
    - Quraşdırarkən **"Add Python 3.7 to PATH"** qutusunu qeyd edin (vacibdir)
    - "Install Now" seçin
 2. Layihəni endirin: <https://github.com/bunyatovvv/ehtiyyat-hisseleri>
    - Yaşıl **Code** düyməsi → **Download ZIP**
-   - Faylı istənilən qovluğa açın (məs: `C:\ehtiyyat-hisseleri`)
-3. Command Prompt (cmd) açın (Start → cmd yazın):
-   ```cmd
-   cd C:\ehtiyyat-hisseleri
-   python -m venv venv
-   venv\Scripts\activate
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
-   copy .env.example .env
-   python app.py
-   ```
+   - ZIP-i istənilən qovluğa açın (məs: `C:\ehtiyyat-hisseleri`)
+3. `start.bat` faylına **iki dəfə klik edin**.
+   - İlk dəfə: virtual environment quracaq, asılılıqları install edəcək (2-5 dəqiqə)
+   - Sonrakı dəfələr: birbaşa serveri qaldıracaq
 4. Brauzerdə açın: <http://127.0.0.1:5001>
+
+Serveri dayandırmaq üçün açılan pəncərədə **Ctrl+C** basın (ya da pəncərəni bağlayın).
+
+### Windows 7-də quraşdırma (əl ilə, `start.bat` işləmirsə)
+
+Command Prompt (Start → cmd yazın):
+
+```cmd
+cd C:\ehtiyyat-hisseleri
+python -m venv venv
+venv\Scripts\activate
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+copy .env.example .env
+python app.py
+```
 
 ### Windows 8.1-də quraşdırma
 
