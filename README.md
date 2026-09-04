@@ -4,7 +4,7 @@ Maşın ehtiyat hissələri satan mağazaları idarə etmək üçün daxili (lok
 
 ## Texniki stack
 
-- **Backend:** Python 3.9+, Flask 3, Flask-SQLAlchemy, Flask-Login, Flask-WTF (CSRF)
+- **Backend:** Python 3.7+, Flask 2.2, Flask-SQLAlchemy, Flask-Login, Flask-WTF (CSRF)
 - **Verilənlər bazası:** SQLite (SQLAlchemy ORM)
 - **Frontend:** Jinja2 template + Bootstrap 5 (CDN-dən), sadə vanilla JS
 - **Build addımı yoxdur** — `pip install` və `python app.py` kifayətdir.
@@ -98,6 +98,54 @@ Mesaj formatı:
 - **Dashboard** — marka/mağaza sayları.
 - **Markalar** — tam CRUD.
 - **Mağazalar** — tam CRUD; ad/ünvan/telefon üzrə axtarış, marka/ölkə/şəhər/status üzrə filtr, tez aktiv/deaktiv toggle.
+
+## Windows 7 / Windows 8.1 quraşdırma
+
+Tətbiq **Python 3.7-13** arasında bütün versiyalarda işləyir. Windows 7-də ən stabil Python `3.7.9`, Windows 8.1-də isə `3.9.13`-dir.
+
+### Windows 7-də quraşdırma
+
+1. **Python 3.7.9** endirin: <https://www.python.org/ftp/python/3.7.9/python-3.7.9.exe>
+   - Quraşdırarkən **"Add Python 3.7 to PATH"** qutusunu qeyd edin (vacibdir)
+   - "Install Now" seçin
+2. Layihəni endirin: <https://github.com/bunyatovvv/ehtiyyat-hisseleri>
+   - Yaşıl **Code** düyməsi → **Download ZIP**
+   - Faylı istənilən qovluğa açın (məs: `C:\ehtiyyat-hisseleri`)
+3. Command Prompt (cmd) açın (Start → cmd yazın):
+   ```cmd
+   cd C:\ehtiyyat-hisseleri
+   python -m venv venv
+   venv\Scripts\activate
+   python -m pip install --upgrade pip
+   pip install -r requirements.txt
+   copy .env.example .env
+   python app.py
+   ```
+4. Brauzerdə açın: <http://127.0.0.1:5001>
+
+### Windows 8.1-də quraşdırma
+
+Yuxarıdakı ilə **eyni**, sadəcə Python versiyası fərqli:
+- Python 3.9.13 endirin: <https://www.python.org/ftp/python/3.9.13/python-3.9.13-amd64.exe>
+
+### Windows-a məxsus problemlər
+
+**Problem: `pip install` SSL / TLS xətası verir**
+- Windows 7 SP1 quraşdırılmalıdır (Service Pack 1)
+- KB3140245 və KB3138612 update-ləri lazım ola bilər (TLS 1.2 dəstəyi üçün)
+- Alternativ olaraq:
+  ```cmd
+  pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
+  ```
+
+**Problem: `python` komandası tapılmır**
+- Python-u quraşdırarkən "Add to PATH" seçilməyib
+- Həll: Python-u uninstall edib yenidən quraşdırın, bu dəfə checkbox-a diqqət edin
+
+**Problem: Firewall port 5001-i bloklayır (başqa kompüterdən girmək üçün)**
+- Windows Firewall → Advanced Settings → Inbound Rules → New Rule → Port → TCP 5001 → Allow
+
+**Qeyd:** Sistem növ zamanı avtomatik başlaması üçün `python app.py`-nı bir `.bat` faylına yerləşdirib `shell:startup` qovluğuna qoya bilərsiniz.
 
 ## 2 kompüter arasında ortaq baza
 

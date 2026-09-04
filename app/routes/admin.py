@@ -1,4 +1,6 @@
 """Admin panel route-ları — Flask-Login ilə qorunur."""
+from typing import Tuple
+
 from flask import Blueprint, abort, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
 from sqlalchemy import func, or_
@@ -180,7 +182,7 @@ def store_list():
     )
 
 
-def _store_from_form(store: Store, form) -> tuple[bool, str]:
+def _store_from_form(store: Store, form) -> Tuple[bool, str]:
     """Form datasını Store obyektinə köçürür. (ok, error_message) qaytarır."""
     name = (form.get("name") or "").strip()
     whatsapp_number = (form.get("whatsapp_number") or "").strip()

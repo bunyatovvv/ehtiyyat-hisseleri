@@ -1,8 +1,14 @@
-Flask==3.0.3
-Flask-SQLAlchemy==3.1.1
+# Versiyalar Python 3.7-13 arasında işləmək üçün seçilib.
+# Windows 7-də Python 3.7.9 quraşdırıldıqda bunlar problemsiz install olur.
+Flask==2.2.5
+Werkzeug==2.2.3
+Jinja2==3.1.4
+MarkupSafe==2.1.5
+itsdangerous==2.1.2
+click==8.1.7
+Flask-SQLAlchemy==3.0.5
+SQLAlchemy==1.4.53
 Flask-Login==0.6.3
-Flask-WTF==1.2.1
-WTForms==3.1.2
-Werkzeug==3.0.4
-python-dotenv==1.0.1
-email-validator==2.2.0
+Flask-WTF==1.1.1
+WTForms==3.0.1
+python-dotenv==0.21.1
