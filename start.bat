@@ -3,6 +3,8 @@ REM ==============================================================
 REM  Ehtiyat hisseleri - Windows launcher
 REM  Ilk defe: virtual environment qurur + asililiqlari install edir
 REM  Sonrakilar: birbaşa serveri qaldirir
+REM
+REM  LAN rejimi: HOST=0.0.0.0 - başqa kompüterlər də bu serverə qoşula bilər
 REM ==============================================================
 
 setlocal EnableDelayedExpansion
@@ -35,18 +37,15 @@ echo [INFO] Python komandasi: !PY!
 !PY! --version
 echo.
 
-REM ---- venv olub olmadigini yoxla ----
+REM ---- venv yoxdursa yaradilir ----
 if exist "venv\Scripts\activate.bat" goto :venv_exists
 
-REM ---- Method 1: standart venv ----
 echo [SETUP] Method 1: standart venv sinayiriq...
 !PY! -m venv venv
 if not errorlevel 1 goto :venv_created
 
-REM Ugursuz oldu — kohne yarim qovluq varsa temizle
 if exist "venv" rmdir /s /q venv
 
-REM ---- Method 2: --without-pip + ensurepip ----
 echo.
 echo [SETUP] Method 2: --without-pip sinayiriq...
 !PY! -m venv --without-pip venv
@@ -62,7 +61,6 @@ if errorlevel 1 (
 python -m pip install --upgrade pip
 goto :venv_created
 
-REM ---- Method 3: virtualenv paketi ----
 :try_virtualenv
 echo.
 echo [SETUP] Method 3: virtualenv paketi ile sinayiriq...
@@ -77,24 +75,12 @@ goto :venv_created
 
 :venv_all_failed
 echo.
-echo ================================================
 echo [XETA] Virtual environment 3 metodda da yaradila bilmedi.
-echo ================================================
-echo.
 echo Muhtemel sebebler:
-echo   1. Antivirus bloklayir (Windows Defender / avast / kaspersky)
-echo      -^> Antivirusu bu qovluq ucun mueyyet mueddet sondururn
-echo.
-echo   2. Qovluq yolunda Azerbaycan herfleri (o, e, u, i, ə...) var
-echo      -^> Layiheni yalniz Latin herfli qovluqda saxlayin:
-echo         mes: C:\zapcast   ve ya  C:\parts
-echo.
-echo   3. Python yalniz "Just for me" quraşdirilib
-echo      -^> Python-u yenidən qurun, bu defe "Install for all users" secin
-echo.
-echo   4. Disk oxumaga icaze yoxdur
-echo      -^> Layiheni Documents ve ya Desktop-da saxlayin
-echo.
+echo   1. Antivirus bloklayir
+echo   2. Qovluq yolunda Azerbaycan herfleri var (ə, ö, ü, i, ...)
+echo      -^> Layiheni C:\zapcast kimi Latin herfli qovluqda saxlayin
+echo   3. Python "Just for me" qurulub -^> "Install for all users" ile yeniden qurun
 pause
 exit /b 1
 
@@ -112,17 +98,14 @@ if not exist "venv\Scripts\flask.exe" (
     python -m pip install --upgrade pip
     pip install -r requirements.txt
     if errorlevel 1 (
-        echo.
-        echo [WARN] pip install ugursuz oldu, --trusted-host ile sinayiriq...
+        echo [WARN] Standart install ugursuz, --trusted-host ile sinayiriq...
         pip install --trusted-host pypi.org --trusted-host files.pythonhosted.org -r requirements.txt
         if errorlevel 1 (
-            echo.
-            echo [XETA] pip install nə birinci, nə də ikinci variantda islemedi.
+            echo [XETA] pip install islemedi.
             pause
             exit /b 1
         )
     )
-    echo.
     echo [SETUP] Asililiqlar qurashdi.
     echo.
 )
@@ -131,22 +114,42 @@ REM ---- .env ----
 if not exist ".env" (
     if exist ".env.example" (
         copy /y .env.example .env >nul
-        echo [SETUP] .env fayli yaradildi.
-        echo.
     )
 )
 
-REM ---- Server ----
+REM ---- LAN mode: HOST-u 0.0.0.0 override et ki, basqa kompuuter de qosula bilsin ----
+set HOST=0.0.0.0
+set PORT=5001
+
+REM ---- LAN IP-ni tap ----
+set "LAN_IP="
+for /f "tokens=2 delims=:" %%A in ('ipconfig ^| findstr /c:"IPv4"') do (
+    if not defined LAN_IP (
+        set "LAN_IP=%%A"
+        set "LAN_IP=!LAN_IP: =!"
+    )
+)
+if not defined LAN_IP set "LAN_IP=<bu kompüterin IP-si>"
+
+REM ---- URL-lar ----
 echo ================================================
 echo  Server ise dushur...
-echo  URL: http://127.0.0.1:5001
-echo  Brauzer avtomatik acilacaq (4 sn sonra).
+echo.
+echo  Bu kompuuterde:
+echo    http://127.0.0.1:5001
+echo.
+echo  Basqa kompuuterden:
+echo    http://!LAN_IP!:5001
+echo.
+echo  ILK DEFE: Windows Firewall pop-up cixarsa "Allow"
+echo  QEYD: Basqa kompuuterlere port 5001 acilmalidir
+echo        (Windows Firewall -^> Inbound Rules -^> New Rule -^> TCP 5001)
+echo.
 echo  Dayandirmaq ucun: Ctrl+C
 echo ================================================
 echo.
 
-REM Brauzeri arxa fonda ac (server hazir olsun deye 4 saniye gozle).
-REM Default brauzer istifade olunur — Chrome default-dursa Chrome-da acilir.
+REM Brauzeri arxa fonda ac (server hazir olsun deye 4 saniye gozle)
 start "" /min powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep 4; Start-Process 'http://127.0.0.1:5001'"
 
 python app.py

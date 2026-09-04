@@ -156,18 +156,55 @@ Yuxarıdakı ilə **eyni**, sadəcə Python versiyası fərqli:
 
 **Qeyd:** Sistem növ zamanı avtomatik başlaması üçün `python app.py`-nı bir `.bat` faylına yerləşdirib `shell:startup` qovluğuna qoya bilərsiniz.
 
-## 2 kompüter arasında ortaq baza
+## 2 (və ya daha çox) kompüter arasında ortaq baza
 
-Ən sadə yol — **bir kompüterdə server, digərində brauzer**:
+Ən sadə və problemsiz yol — **bir kompüteri "server" edin, digərləri sadəcə brauzerdən qoşulsun**. Baza avtomatik ortaq olur çünki yalnız bir yerdə saxlanılır.
 
-1. Server olan kompüterdə `.env`-də `HOST=0.0.0.0` yazın.
-2. `ipconfig getifaddr en0` (macOS) və ya `ip a` (Linux) ilə lokal IP-ni öyrənin.
-3. `python app.py` işlədin, firewall soruşsa **Allow**.
-4. İkinci kompüterdə brauzerdə açın: `http://<IP>:5001`
+### Windows-da (start.bat istifadə edərək)
 
-Beləliklə iki maşın eyni bazanı görür (baza yalnız serverdə saxlanılır).
+**Server kompüterində:**
+1. `start.bat`-a iki dəfə klik → server LAN mode-da qalxır
+2. Ekranda görəcəksiniz:
+   ```
+   Bu kompuuterde:
+     http://127.0.0.1:5001
+   
+   Basqa kompuuterden:
+     http://192.168.1.15:5001    ← bu IP-ni yaddaşinızda saxlayın
+   ```
+3. **Windows Firewall pop-up** çıxarsa **"Allow"** basın.
+4. İlk dəfə isə **Firewall Inbound Rule** əlavə etmək lazım ola bilər:
+   - Start → yazın: `Windows Defender Firewall with Advanced Security`
+   - **Inbound Rules** → **New Rule** → **Port** → **TCP** → **Specific local ports: 5001** → **Allow** → Next Next Finish
 
-> ⚠️ SQLite faylını Dropbox/iCloud/şəbəkə diski ilə paylaşmayın — file locking düzgün işləmir, baza korrupt ola bilər. Ciddi paralel istifadə üçün PostgreSQL-ə keçin (`DATABASE_URL=postgresql://...`).
+**Digər kompüterdə** (heç nə install etməyə ehtiyac yoxdur):
+
+Brauzeri açın (Chrome, Edge, hər hansı) və yazın:
+```
+http://<server-ip>:5001
+```
+(server-ip yerinə birinci kompüterin ekranındakı IP — məs `http://192.168.1.15:5001`)
+
+Bütün istifadəçilər eyni bazanı görür — baza server kompüterində durur, digərləri onun üzərindən işləyir.
+
+### Vacib qeydlər
+
+- **Server kompüteri yandırılmalıdır** — söndürsəniz digərləri işləyə bilməz. Ona görə həmişə açıq qalacaq kompüteri "server" seçin.
+- **IP dəyişməsin deyə** router paneldən statik IP təyin edin (DHCP → Reserved Addresses).
+- **VPN / mobile hotspot** işlədirsinizsə, hər iki kompüter **eyni Wi-Fi / şəbəkəyə** qoşulmalıdır.
+
+### ⚠️ Etməyin
+
+**SQLite faylını Dropbox / iCloud / OneDrive / şəbəkə diskində paylaşmayın** — SQLite-ın file locking mexanizmi şəbəkə fayl sistemlərində işləmir, baza tez bir zamanda **korrupt olur**. Rəsmi SQLite sənədləri bunu qəti qadağan edir.
+
+### Ciddi paralel istifadə (opsional, gələcək üçün)
+
+Bir çox istifadəçi eyni anda aktiv yazırsa (məsələn 5+ nəfər eyni zamanda mağaza əlavə edir), SQLite performansı zəifləyə bilər. O zaman PostgreSQL-ə keçmək olar:
+
+1. Bir kompüterdə PostgreSQL install edin (pulsuz, <https://www.postgresql.org/download/windows/>)
+2. `.env`-də dəyişin: `DATABASE_URL=postgresql://user:pass@host:5432/dbname`
+3. `pip install psycopg2-binary`
+4. Kod dəyişikliyi yoxdur — SQLAlchemy driveri özü seçir
 
 ## Test datasını sıfırlamaq
 
