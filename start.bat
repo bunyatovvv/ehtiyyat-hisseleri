@@ -139,10 +139,16 @@ if not exist ".env" (
 REM ---- Server ----
 echo ================================================
 echo  Server ise dushur...
-echo  Brauzerde acin: http://127.0.0.1:5001
+echo  URL: http://127.0.0.1:5001
+echo  Brauzer avtomatik acilacaq (4 sn sonra).
 echo  Dayandirmaq ucun: Ctrl+C
 echo ================================================
 echo.
+
+REM Brauzeri arxa fonda ac (server hazir olsun deye 4 saniye gozle).
+REM Default brauzer istifade olunur — Chrome default-dursa Chrome-da acilir.
+start "" /min powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep 4; Start-Process 'http://127.0.0.1:5001'"
+
 python app.py
 
 echo.
